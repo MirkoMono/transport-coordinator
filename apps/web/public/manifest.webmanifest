@@ -1,0 +1,18 @@
+{
+  "name": "Transport Coordinator",
+  "short_name": "Transport",
+  "description": "Film production transport coordination",
+  "start_url": "/driver",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

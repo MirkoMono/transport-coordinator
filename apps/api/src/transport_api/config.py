@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     cors_origins: str = "http://localhost:5173"
     ai_enabled: bool = False
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "gemma2:2b"
+    geocode_country_bias: str = "se"
+    matrix_cache_ttl: int = 86_400
 
     @property
     def cors_origin_list(self) -> list[str]:

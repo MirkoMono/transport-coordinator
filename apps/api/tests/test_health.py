@@ -12,6 +12,9 @@ def test_health():
     assert data["status"] == "ok"
     assert "version" in data
     assert data["ai_enabled"] is False
+    assert data["ai_status"] == "disabled"
+    assert "redis" in data
+    assert "database" in data
 
 
 def test_optimize_stub():
@@ -33,6 +36,63 @@ def test_optimize_stub():
     assert len(data["routes"][0]["stops"]) == 2
     assert data["solver_status"] != "PHASE0_PLACEHOLDER"
     assert data["total_distance"] > 0
+    assert "matrix_cache_hit" in data
+
+
+def test_manifest_pdf_endpoint():
+    response = client.post(
+        "/api/v1/routes/manifest.pdf",
+        json={
+            "production_name": "Demo Shoot",
+            "routes": [
+                {
+                    "vehicle_name": "Van 1",
+                    "driver_name": "Driver A",
+                    "total_distance": 5000,
+                    "stops": [
+                        {
+                            "node_id": "p1",
+                            "person_name": "Alice",
+                            "sequence": 0,
+                            "eta_minutes": 10,
+                            "address": "Stockholm",
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.content.startswith(b"%PDF")
+
+
+def test_runs_list():
+    response = client.get("/api/v1/runs")
+    assert response.status_code == 200
+    assert "runs" in response.json()
+
+
+def test_calendar_endpoint():
+    response = client.post(
+        "/api/v1/routes/calendar.ics",
+        json={
+            "vehicle_name": "Van 1",
+            "driver_name": "Driver A",
+            "stops": [
+                {
+                    "node_id": "p1",
+                    "person_name": "Alice",
+                    "sequence": 0,
+                    "eta_minutes": 10,
+                    "address": "Stockholm",
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert "text/calendar" in response.headers["content-type"]
+    assert "BEGIN:VCALENDAR" in response.text
 
 
 def test_csv_import():

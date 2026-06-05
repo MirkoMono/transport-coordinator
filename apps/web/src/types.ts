@@ -31,6 +31,8 @@ export type OptimizeResult = {
   routes: VehicleRoute[];
   total_distance: number;
   solver_status: string;
+  run_id?: string | null;
+  matrix_cache_hit?: boolean;
 };
 
 export const ROUTE_COLORS = [
@@ -42,16 +44,25 @@ export const ROUTE_COLORS = [
   "#ffd93d",
 ];
 
-export const DEMO_CSV = `name,latitude,longitude,address
-Anna Berg,59.3293,18.0686,Södermalm Stockholm
-Björn Lind,59.3420,18.0500,Vasastan Stockholm
-Cara Nils,59.3180,18.0640,Hornstull Stockholm
-David Ek,59.3350,18.0900,Östermalm Stockholm
-Eva Holm,59.3100,18.0800,Årsta Stockholm
-Felix Ru,59.3480,18.0400,Karlberg Stockholm
-Greta Mo,59.3250,18.0300,Kungsholmen Stockholm
-Hugo Tan,59.3400,18.1100,Gärdet Stockholm
-Ines Ku,59.3050,18.0600,Hägersten Stockholm
-Johan Wi,59.3550,18.0700,Solna Stockholm
-Karin Lo,59.3200,18.1000,Södermalm Sthlm
-Lars Pe,59.3300,18.0200,Fridhemsplan Stockholm`;
+export const DEMO_CSV = `name,address
+Anna Berg,Drottninggatan 1 Stockholm
+Björn Lind,Sveavägen 44 Stockholm
+Cara Nils,Hornstulls strand 9 Stockholm
+David Ek,Storgatan 1 Stockholm
+Eva Holm,Årstavägen 12 Stockholm
+Felix Ru,Karlbergsvägen 86 Stockholm
+Greta Mo,Fleminggatan 18 Stockholm
+Hugo Tan,Augustendalsvägen 10 Nacka
+Ines Ku,Hägerstensvägen 100 Stockholm
+Johan Wi,Råsundavägen 100 Solna
+Karin Lo,Götgatan 15 Stockholm
+Lars Pe,Fridhemsplan Stockholm`;
+
+export const DEMO_CALL_SHEET = `CALL SHEET - Day 14
+Camera - Anna Berg - pickup Drottninggatan 1 Stockholm
+Grip - Björn Lind - Sveavägen 44 Stockholm
+Sound - Cara Nils - Hornstulls strand 9
+AD - David Ek - Storgatan 1 Stockholm
+Script - Eva Holm - Årstavägen 12 Stockholm
+Electric - Felix Ru - Karlbergsvägen 86 Stockholm
+HMU - Hugo Tan - Augustendalsvägen 10 Nacka`;

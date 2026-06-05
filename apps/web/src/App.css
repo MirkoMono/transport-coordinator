@@ -152,6 +152,13 @@
   cursor: not-allowed;
 }
 
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 .route-card {
   margin-top: 12px;
   padding-top: 12px;
@@ -171,10 +178,60 @@
 }
 
 .stop-list li {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
+}
+
+.route-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lock-select {
+  font-size: 0.7rem;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  max-width: 110px;
+}
+
+.call-time-input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.driver-link-header {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  text-decoration: none;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.diff-panel {
+  margin-top: 16px;
+}
+
+.diff-line {
+  margin: 6px 0;
+  font-size: 0.875rem;
+}
+
+.btn.small {
+  padding: 6px 10px;
+  font-size: 0.75rem;
 }
 
 .eta {
@@ -203,6 +260,20 @@
   height: 360px;
   width: 100%;
   background: var(--color-bg);
+}
+
+.depot-marker {
+  background: transparent;
+  border: none;
+}
+
+.depot-pin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  border: 2px solid #000;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .placeholder-text {

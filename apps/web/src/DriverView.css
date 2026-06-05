@@ -1,0 +1,129 @@
+.driver {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  min-height: 100%;
+}
+
+.driver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.driver-greeting {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.driver-meta {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.driver-link {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.driver-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.driver-card.focus {
+  border-color: var(--color-accent-dim);
+}
+
+.focus-name {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.focus-eta {
+  margin: 4px 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.focus-address {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.driver-select,
+.delay-input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.delay-label {
+  display: block;
+  margin-top: 12px;
+}
+
+.driver-stops {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.driver-stops li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.driver-stops li.done {
+  opacity: 0.55;
+}
+
+.stop-name {
+  display: block;
+  font-weight: 600;
+}
+
+.stop-eta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.stop-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn.small {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+}
+
+.badge {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.driver-message {
+  text-align: center;
+  color: var(--color-accent);
+  font-size: 0.875rem;
+}

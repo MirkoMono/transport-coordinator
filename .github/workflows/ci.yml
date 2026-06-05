@@ -20,6 +20,7 @@ jobs:
         run: |
           pip install -e "packages/solver[dev]"
           pip install -e "packages/geospatial[dev]"
+          pip install -e "packages/ai[dev]"
           pip install -e "apps/api[dev]"
 
       - name: Ruff (solver)
@@ -31,11 +32,17 @@ jobs:
       - name: Ruff (geospatial)
         run: ruff check packages/geospatial
 
+      - name: Ruff (ai)
+        run: ruff check packages/ai
+
       - name: Test solver
         run: pytest packages/solver -q
 
       - name: Test geospatial
         run: pytest packages/geospatial -q
+
+      - name: Test AI
+        run: pytest packages/ai -q
 
       - name: Test API
         run: pytest apps/api -q

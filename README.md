@@ -24,11 +24,17 @@ Starts PostgreSQL (PostGIS) and Redis.
 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
-pip install -e "packages/solver[dev]" -e "packages/geospatial[dev]" -e "apps/api[dev]"
+pip install -e "packages/solver[dev]" -e "packages/geospatial[dev]" -e "packages/ai[dev]" -e "apps/api[dev]"
 make api
 ```
 
 API: http://localhost:8000 — docs at http://localhost:8000/docs
+
+Run database migrations (with infra running):
+
+```bash
+make migrate
+```
 
 ### 3. Run web UI
 
@@ -70,8 +76,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions.
 | Phase | Status | Focus |
 |-------|--------|-------|
 | 0 | ✅ Done | Monorepo, Docker, CI, UI shell |
-| 1 | 🚧 Current | OR-Tools solver, geocoding, map UI, CSV import |
-| 2 | Planned | Manifests, PWA, on-prem install |
-| 3 | Planned | Optional local AI (Ollama + Gemma) |
+| 1 | ✅ Done | OR-Tools solver, geocoding, map UI, Redis cache, PDF manifests |
+| 2 | ✅ Done | Driver PWA, route diff, call-time, locked re-optimize, ICS |
+| 3 | 🚧 In progress | Address geocoding, AI call-sheet parse (Gemma/Ollama) |
+| 4 | Planned | Open source release (GHCR, demo GIF) |
 
 Full plan in [memory.md](memory.md).

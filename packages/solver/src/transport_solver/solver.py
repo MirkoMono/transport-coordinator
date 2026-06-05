@@ -15,6 +15,8 @@ class PickupNode:
     latitude: float
     longitude: float
     demand: int = 1
+    ready_minutes: int = 0
+    due_minutes: int = 24 * 60
 
 
 @dataclass(frozen=True)
@@ -32,6 +34,8 @@ class SolveRequest:
     depot_latitude: float
     depot_longitude: float
     distance_matrix: list[list[int]] | None = None
+    locked_assignments: dict[str, str] | None = None
+    max_route_minutes: int = 480
 
 
 @dataclass
@@ -85,7 +89,7 @@ def build_distance_matrix(
     return matrix
 
 
-def _estimate_eta_minutes(distance_meters: int, speed_kmh: float = 35.0) -> int:
+def travel_minutes(distance_meters: int, speed_kmh: float = 35.0) -> int:
     if distance_meters <= 0:
         return 0
     meters_per_minute = speed_kmh * 1000 / 60
@@ -93,7 +97,7 @@ def _estimate_eta_minutes(distance_meters: int, speed_kmh: float = 35.0) -> int:
 
 
 def solve_vrp(request: SolveRequest) -> SolveResult:
-    """Solve a capacitated VRP with pickups using OR-Tools."""
+    """Solve a capacitated VRP with optional time windows and locked assignments."""
     if not request.pickups:
         raise ValueError("At least one pickup is required")
     if not request.vehicles:
@@ -105,6 +109,24 @@ def solve_vrp(request: SolveRequest) -> SolveResult:
         raise ValueError(
             f"Insufficient capacity: {total_demand} passengers, {total_capacity} seats"
         )
+
+    locked = request.locked_assignments or {}
+    vehicle_index = {v.id: idx for idx, v in enumerate(request.vehicles)}
+    locked_by_vehicle: dict[str, int] = {}
+    for node_id, vehicle_id in locked.items():
+        if vehicle_id not in vehicle_index:
+            raise ValueError(f"Unknown locked vehicle: {vehicle_id}")
+        if not any(p.id == node_id for p in request.pickups):
+            raise ValueError(f"Unknown locked pickup: {node_id}")
+        locked_by_vehicle[vehicle_id] = locked_by_vehicle.get(vehicle_id, 0) + 1
+
+    for vehicle in request.vehicles:
+        locked_count = locked_by_vehicle.get(vehicle.id, 0)
+        if locked_count > vehicle.capacity:
+            raise ValueError(
+                f"Vehicle '{vehicle.name}' has {locked_count} locked pickups "
+                f"but capacity is {vehicle.capacity}"
+            )
 
     matrix = request.distance_matrix or build_distance_matrix(
         request.depot_latitude,
@@ -122,8 +144,14 @@ def solve_vrp(request: SolveRequest) -> SolveResult:
         to_node = manager.IndexToNode(to_index)
         return matrix[from_node][to_node]
 
-    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
-    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+    def time_callback(from_index: int, to_index: int) -> int:
+        from_node = manager.IndexToNode(from_index)
+        to_node = manager.IndexToNode(to_index)
+        return travel_minutes(matrix[from_node][to_node])
+
+    distance_callback_index = routing.RegisterTransitCallback(distance_callback)
+    time_callback_index = routing.RegisterTransitCallback(time_callback)
+    routing.SetArcCostEvaluatorOfAllVehicles(distance_callback_index)
 
     demands = [0] + [p.demand for p in request.pickups]
 
@@ -140,6 +168,25 @@ def solve_vrp(request: SolveRequest) -> SolveResult:
         "Capacity",
     )
 
+    routing.AddDimension(
+        time_callback_index,
+        30,
+        request.max_route_minutes,
+        False,
+        "Time",
+    )
+    time_dimension = routing.GetDimensionOrDie("Time")
+
+    solver = routing.solver()
+    for node_idx, pickup in enumerate(request.pickups, start=1):
+        index = manager.NodeToIndex(node_idx)
+        if pickup.due_minutes > pickup.ready_minutes:
+            time_dimension.CumulVar(index).SetRange(pickup.ready_minutes, pickup.due_minutes)
+
+        if pickup.id in locked:
+            vehicle_idx = vehicle_index[locked[pickup.id]]
+            solver.Add(routing.VehicleVar(index) == vehicle_idx)
+
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
@@ -151,7 +198,11 @@ def solve_vrp(request: SolveRequest) -> SolveResult:
 
     solution = routing.SolveWithParameters(search_parameters)
     if solution is None:
-        raise RuntimeError("OR-Tools could not find a feasible solution")
+        raise RuntimeError(
+            "OR-Tools could not find a feasible solution. "
+            "Check that addresses geocoded to the correct city, call time allows enough "
+            "travel, fleet capacity is sufficient, and locked assignments fit each van."
+        )
 
     node_id_by_index = ["depot"] + [p.id for p in request.pickups]
     routes: list[VehicleRoute] = []
@@ -163,31 +214,27 @@ def solve_vrp(request: SolveRequest) -> SolveResult:
         route_distance = 0
         sequence = 0
         prev_node = depot
-        cumulative_eta = 0
 
         while not routing.IsEnd(index):
             node = manager.IndexToNode(index)
             if node != depot:
                 leg = matrix[prev_node][node]
                 route_distance += leg
-                cumulative_eta += _estimate_eta_minutes(leg)
+                eta = solution.Value(time_dimension.CumulVar(index))
                 stops.append(
                     RouteStop(
                         node_id=node_id_by_index[node],
                         sequence=sequence,
-                        eta_minutes=cumulative_eta,
+                        eta_minutes=eta,
                     )
                 )
                 sequence += 1
                 prev_node = node
             index = solution.Value(routing.NextVar(index))
 
-        # Return leg to depot
         if stops:
             leg = matrix[prev_node][depot]
             route_distance += leg
-
-        if stops:
             routes.append(
                 VehicleRoute(
                     vehicle_id=vehicle.id,

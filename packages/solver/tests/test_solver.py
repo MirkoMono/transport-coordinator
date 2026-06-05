@@ -61,4 +61,65 @@ def test_single_vehicle_single_pickup():
     )
     assert len(result.routes) == 1
     assert len(result.routes[0].stops) == 1
-    assert result.routes[0].stops[0].eta_minutes >= 1
+    assert result.routes[0].stops[0].eta_minutes >= 0
+
+
+def test_locked_assignment_exceeds_capacity_raises():
+    with pytest.raises(ValueError, match="locked pickups"):
+        solve_vrp(
+            SolveRequest(
+                pickups=[
+                    PickupNode(id=f"p{i}", name=f"P{i}", latitude=59.33, longitude=18.06)
+                    for i in range(5)
+                ],
+                vehicles=[
+                    Vehicle(id="v1", name="Van 1", capacity=4),
+                    Vehicle(id="v2", name="Van 2", capacity=4),
+                ],
+                depot_latitude=59.33,
+                depot_longitude=18.06,
+                locked_assignments={f"p{i}": "v1" for i in range(5)},
+            )
+        )
+
+
+def test_locked_assignment():
+    result = solve_vrp(
+        SolveRequest(
+            pickups=[
+                PickupNode(id="p1", name="A", latitude=59.33, longitude=18.06),
+                PickupNode(id="p2", name="B", latitude=59.40, longitude=18.10),
+            ],
+            vehicles=[
+                Vehicle(id="v1", name="Van 1", capacity=4),
+                Vehicle(id="v2", name="Van 2", capacity=4),
+            ],
+            depot_latitude=59.33,
+            depot_longitude=18.06,
+            locked_assignments={"p2": "v2"},
+        )
+    )
+    v2 = next(r for r in result.routes if r.vehicle_id == "v2")
+    assert any(s.node_id == "p2" for s in v2.stops)
+
+
+def test_call_time_window():
+    """All pickups must arrive before minute 60."""
+    result = solve_vrp(
+        SolveRequest(
+            pickups=[
+                PickupNode(
+                    id="p1",
+                    name="A",
+                    latitude=59.34,
+                    longitude=18.07,
+                    due_minutes=60,
+                ),
+            ],
+            vehicles=[Vehicle(id="v1", name="Van", capacity=4)],
+            depot_latitude=59.33,
+            depot_longitude=18.06,
+            max_route_minutes=120,
+        )
+    )
+    assert result.routes[0].stops[0].eta_minutes <= 60

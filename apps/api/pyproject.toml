@@ -13,8 +13,15 @@ dependencies = [
     "uvicorn[standard]>=0.32",
     "pydantic>=2.10",
     "pydantic-settings>=2.6",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "geoalchemy2>=0.15",
+    "psycopg2-binary>=2.9",
+    "redis>=5.0",
+    "fpdf2>=2.8",
     "transport-solver",
     "transport-geospatial",
+    "transport-ai",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +29,7 @@ dev = [
     "httpx>=0.28",
     "pytest>=8.0",
     "ruff>=0.8",
+    "fakeredis>=2.26",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -4,7 +4,7 @@
 >
 > **Repository:** `transport-coordinator` (dedicated GitHub repo — not part of a monorepo)
 >
-> **Last updated:** 2026-06-05 (Phase 0 complete)
+> **Last updated:** 2026-06-05 (Phase 2 complete, Phase 3 in progress — address geocoding + AI call-sheet)
 
 ---
 
@@ -138,13 +138,15 @@ Target: stable operation on **consumer hardware and low-VRAM GPUs** (4–8 GB VR
 ### Key API endpoints (MVP)
 
 ```
-POST /api/v1/productions/{id}/addresses/bulk-import
-POST /api/v1/productions/{id}/routes/optimize
-GET  /api/v1/productions/{id}/routes/{route_id}
-GET  /api/v1/productions/{id}/routes/{route_id}/manifest.pdf
-GET  /api/v1/drivers/{id}/assignment          # PWA
-POST /api/v1/routes/{id}/stops/{stop_id}/check-in
-POST /api/v1/ai/parse-call-sheet              # optional, requires LLM
+POST /api/v1/addresses/bulk-import
+POST /api/v1/addresses/geocode-batch          # Nominatim batch (address → lat/lng)
+POST /api/v1/routes/optimize
+GET  /api/v1/runs                             # route version history
+GET  /api/v1/runs/{a}/diff/{b}                # what changed between runs
+POST /api/v1/routes/manifest.pdf
+POST /api/v1/routes/calendar.ics
+POST /api/v1/ai/parse-call-sheet              # optional, requires Ollama + AI_ENABLED=true
+GET  /health                                  # includes ai_status
 ```
 
 ### Data model (core entities)
@@ -171,14 +173,15 @@ POST /api/v1/ai/parse-call-sheet              # optional, requires LLM
 | Map visualization (color per vehicle) | Multi-tenant SaaS billing |
 | PDF driver manifest | SSO / SAML |
 | Single-tenant Docker deploy | SMS notifications |
-| Manual re-optimize after edits | AI call-sheet parsing |
+| Manual re-optimize after edits | Per-person staggered call times (UI) |
 | PWA driver view (read-only manifest) | White-label branding |
+| AI call-sheet parsing (optional, Ollama) | NL route edit commands |
 
 **MVP success criteria:**
-- [ ] 12-person / 12-address scenario solves in < 2 seconds
-- [ ] Coordinator can import, optimize, and print manifests in < 10 minutes
-- [ ] Driver opens PWA manifest on phone without app install
-- [ ] Full stack runs via `docker compose up` on a MacBook (16 GB RAM, no GPU)
+- [x] 12-person / 12-address scenario solves in < 2 seconds
+- [x] Coordinator can import, optimize, and print manifests in < 10 minutes
+- [x] Driver opens PWA manifest on phone without app install
+- [ ] Full stack runs via `docker compose up` on a MacBook (16 GB RAM, no GPU) — validated via `make setup-local` (no Docker) on dev Mac
 
 ---
 
@@ -192,30 +195,34 @@ POST /api/v1/ai/parse-call-sheet              # optional, requires LLM
 - [x] CI: lint + typecheck on push
 - [x] Dark-mode UI shell (design tokens from reference sketches)
 
-### Phase 1 — MVP Core (Week 3–6) 🚧
-- [ ] PostGIS schema + migrations (Alembic)
+### Phase 1 — MVP Core (Week 3–6) ✅
+- [x] PostGIS schema + migrations (Alembic)
 - [x] Address geocoding service (Nominatim default, Mapbox optional)
-- [ ] Distance matrix service with Redis cache
+- [x] Distance matrix service with Redis cache
 - [x] OR-Tools VRP solver (replaces Phase 0 placeholder)
-- [x] `POST /routes/optimize` end-to-end
+- [x] `POST /routes/optimize` end-to-end (persists runs when DB available)
 - [x] `POST /addresses/bulk-import` CSV parser
 - [x] Coordinator UI: import → configure vehicles → optimize → map view (Leaflet/OSM)
-- [ ] PDF manifest generation (WeasyPrint or similar)
+- [x] PDF manifest generation (`fpdf2` + download in UI)
 
-### Phase 2 — Production Polish (Week 7–10)
-- [ ] Route versioning + diff view ("what changed?")
-- [ ] Time windows + call-time constraints
-- [ ] "What-if" mode: lock assignments, re-optimize remainder
-- [ ] Driver PWA: manifest, check-in, delay report
-- [ ] Export: `.ics` calendar per driver
-- [ ] On-prem install docs + single-command deploy script
+### Phase 2 — Production Polish (Week 7–10) ✅
+- [x] Route versioning + diff view ("what changed?")
+- [x] Time windows + call-time constraints
+- [x] "What-if" mode: lock assignments, re-optimize remainder
+- [x] Driver PWA: manifest, check-in, delay report (`/driver`)
+- [x] Export: `.ics` calendar per driver
+- [x] On-prem install docs + `scripts/install.sh`
 
-### Phase 3 — AI Layer (Week 11–14)
-- [ ] `LLMProvider` abstraction (Ollama, OpenAI-compatible, disabled)
-- [ ] Ollama + Gemma 2 in Docker Compose (optional profile)
-- [ ] Call-sheet text → structured JSON parser
+### Phase 3 — AI Layer (Week 11–14) 🚧
+- [x] `LLMProvider` abstraction (Ollama, disabled fallback) — `packages/ai/`
+- [x] Ollama + Gemma 2 in Docker Compose (`docker/compose.ai.yml`, `make ai`)
+- [x] Call-sheet text → structured JSON parser (`POST /api/v1/ai/parse-call-sheet`)
+- [x] Address-only CSV import + batch geocode (`POST /api/v1/addresses/geocode-batch`)
+- [x] UI: import/geocode workflow, AI call-sheet tab, map fit-bounds (`MapFitBounds.tsx`)
+- [x] Coordinates from Nominatim only — LLM never outputs lat/lng
 - [ ] NL route edit commands
-- [ ] Memory/VRAM guardrails (separate container, 4 GB limit)
+- [ ] Per-person call/pickup times (solver supports `must_arrive_by_minutes`; AI/UI not wired)
+- [x] Memory/VRAM guardrails (Ollama container 4 GB limit)
 
 ### Phase 4 — Open Source Release (Week 15–16)
 - [ ] Scrub proprietary placeholders
@@ -329,20 +336,63 @@ Before public release, ensure:
 | 2026-06-05 | FastAPI + React | Best OR-Tools ergonomics + modern frontend |
 | 2026-06-05 | Dedicated GitHub repo | Clean OSS history, independent release cycle |
 | 2026-06-05 | Dark-mode UI tokens | Matches reference sketches: black + mint green accent |
+| 2026-06-05 | Geocode via Nominatim, not LLM | Production assistants provide addresses only; LLM hallucinated coords would break map + VRP |
+| 2026-06-05 | Address-only CSV workflow | `name,address` columns → batch geocode → optimize; no manual lat/lng |
+| 2026-06-05 | `make setup-local` for no-Docker dev | User Mac without Docker Desktop; API + web via `scripts/start-api.sh` / `start-web.sh` |
 
 ---
 
-## 13. Session Quick-Start
+## 13. Session Log — 2026-06-05
+
+### User testing feedback (local Mac, no Docker)
+- App runs locally via `make setup-local` ✅
+- CSV import, PDF export, optimize + map ✅
+- **Map pins were wrong** — demo CSV had hand-picked lat/lng; fixed by address-only + Nominatim geocoding
+- **OR-Tools infeasible** — CSV commas in addresses (`Drottninggatan 1, Stockholm`) split columns; cities dropped → geocoded to Göteborg/Helsingborg; fixed CSV parser + demo data
+- **Nacka missing** — `Kvarnholmsgatan 10` not in Nominatim; replaced with `Augustendalsvägen 10 Nacka` → 12/12 geocoded
+- **Load demo appeared dead** — demo pre-loaded on page open; fixed empty initial textarea + status message
+- AI call sheet tab disabled until `AI_ENABLED=true` + Ollama (header shows `AI off`)
+- UI polish deferred; next milestone: **on-prem install** for production company tester
+
+### Shipped today (Phase 2 remainder + Phase 3 core)
+| Area | Changes |
+|------|---------|
+| **packages/ai/** | `OllamaProvider`, `DisabledProvider`, `parse_call_sheet_text()` — extracts `{name, address}` from messy text |
+| **API** | `POST /api/v1/addresses/geocode-batch`, `POST /api/v1/ai/parse-call-sheet`, `ai_status` on `/health` |
+| **Geospatial** | `geocode_batch()` with 1 req/sec Nominatim rate limit |
+| **CSV import** | `_parse_csv_address()` joins extra columns when addresses contain commas |
+| **Solver** | `max_route_minutes` 480; locked-assignment capacity validation; clearer infeasibility error |
+| **Web UI** | `CoordinatorView`: CSV vs AI tabs, Import & geocode, geocoded counter, `RouteMap` fit-bounds, depot marker |
+| **Docker** | `docker/compose.ai.yml` — optional Ollama profile (`make ai`) |
+| **Dev scripts** | `scripts/start-api.sh`, `scripts/start-web.sh`, `scripts/dev-no-docker.sh`, `docs/on-prem-install.md` |
+| **Tests** | `packages/ai/tests/`, `test_geocode_batch.py`, `test_ai_parse.py`, CSV comma test |
+
+### Coordinator workflow (current)
+1. **Routes tab** → Load demo (12) → **Import & geocode** (~12 sec, Nominatim)
+2. Set call time (default 08:00, applies to all crew)
+3. **Optimize routes** → Map / Results / PDF
+4. **AI call sheet** (optional): paste text → Parse & geocode → same pipeline
+
+### Known limitations
+- Single global call time in UI; per-person `must_arrive_by_minutes` exists in API but not AI/CSV/UI
+- Failed geocodes skipped from optimize (counter shows e.g. `11/12 geocoded`); no per-name failure list yet
+- Routes drawn as straight lines (haversine), not road network
+- AI requires Docker + Ollama + `gemma2:2b` pull; default `AI_ENABLED=false`
+
+---
+
+## 14. Session Quick-Start
 
 When resuming development:
 1. Read this `memory.md`
 2. Check `git log --oneline -10` for recent work
-3. Run `make infra` then `make api` + `make web`
-4. MVP priority: **solver correctness → API → coordinator UI → PDF manifest**
+3. **With Docker:** `make setup` → `./scripts/start-api.sh` + `./scripts/start-web.sh` (two terminals)
+4. **Without Docker:** `make setup-local` → same two scripts; open http://localhost:5173
+5. Priority: **on-prem install** → enable AI for call-sheet testing → UI polish → Phase 4 OSS release
 
 ---
 
-## 14. Open Questions
+## 15. Open Questions
 
 - [ ] Primary market: Sweden/Nordics first? (46elks SMS, Swedish call-sheet formats)
 - [ ] Map provider default: Mapbox (better UX) vs OSM-only (fully OSS)?
