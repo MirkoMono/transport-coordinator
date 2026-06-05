@@ -192,13 +192,14 @@ POST /api/v1/ai/parse-call-sheet              # optional, requires LLM
 - [x] CI: lint + typecheck on push
 - [x] Dark-mode UI shell (design tokens from reference sketches)
 
-### Phase 1 — MVP Core (Week 3–6)
+### Phase 1 — MVP Core (Week 3–6) 🚧
 - [ ] PostGIS schema + migrations (Alembic)
-- [ ] Address geocoding service (Nominatim default, Mapbox optional)
+- [x] Address geocoding service (Nominatim default, Mapbox optional)
 - [ ] Distance matrix service with Redis cache
-- [ ] OR-Tools VRP solver microservice
-- [ ] `POST /routes/optimize` end-to-end
-- [ ] Coordinator UI: import → configure vehicles → optimize → map view
+- [x] OR-Tools VRP solver (replaces Phase 0 placeholder)
+- [x] `POST /routes/optimize` end-to-end
+- [x] `POST /addresses/bulk-import` CSV parser
+- [x] Coordinator UI: import → configure vehicles → optimize → map view (Leaflet/OSM)
 - [ ] PDF manifest generation (WeasyPrint or similar)
 
 ### Phase 2 — Production Polish (Week 7–10)

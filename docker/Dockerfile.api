@@ -5,9 +5,10 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 COPY packages/solver /app/packages/solver
+COPY packages/geospatial /app/packages/geospatial
 COPY apps/api /app/apps/api
 
-RUN uv pip install --system /app/packages/solver /app/apps/api
+RUN uv pip install --system /app/packages/solver /app/packages/geospatial /app/apps/api
 
 EXPOSE 8000
 

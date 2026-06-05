@@ -13,6 +13,7 @@ dist/
 build/
 .venv/
 venv/
+.env.venv
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/

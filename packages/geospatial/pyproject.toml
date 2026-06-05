@@ -3,29 +3,23 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "transport-api"
+name = "transport-geospatial"
 version = "0.1.0"
-description = "FastAPI backend for transport coordination"
+description = "Geocoding and distance matrix utilities for transport coordination"
 license = "Apache-2.0"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.32",
-    "pydantic>=2.10",
-    "pydantic-settings>=2.6",
-    "transport-solver",
-    "transport-geospatial",
+    "httpx>=0.28",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "httpx>=0.28",
     "pytest>=8.0",
     "ruff>=0.8",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/transport_api"]
+packages = ["src/transport_geospatial"]
 
 [tool.ruff]
 line-length = 100

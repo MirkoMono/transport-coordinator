@@ -23,7 +23,8 @@ Starts PostgreSQL (PostGIS) and Redis.
 ### 2. Run API
 
 ```bash
-pip install -e "packages/solver[dev]" -e "apps/api[dev]"
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -e "packages/solver[dev]" -e "packages/geospatial[dev]" -e "apps/api[dev]"
 make api
 ```
 
@@ -68,8 +69,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions.
 
 | Phase | Status | Focus |
 |-------|--------|-------|
-| 0 | ✅ Current | Monorepo, Docker, CI, UI shell |
-| 1 | Next | OR-Tools solver, geocoding, map UI |
+| 0 | ✅ Done | Monorepo, Docker, CI, UI shell |
+| 1 | 🚧 Current | OR-Tools solver, geocoding, map UI, CSV import |
 | 2 | Planned | Manifests, PWA, on-prem install |
 | 3 | Planned | Optional local AI (Ollama + Gemma) |
 

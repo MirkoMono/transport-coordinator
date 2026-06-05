@@ -16,11 +16,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install solver
-        run: pip install -e "packages/solver[dev]"
-
-      - name: Install API
-        run: pip install -e "apps/api[dev]"
+      - name: Install packages
+        run: |
+          pip install -e "packages/solver[dev]"
+          pip install -e "packages/geospatial[dev]"
+          pip install -e "apps/api[dev]"
 
       - name: Ruff (solver)
         run: ruff check packages/solver
@@ -28,8 +28,14 @@ jobs:
       - name: Ruff (api)
         run: ruff check apps/api
 
+      - name: Ruff (geospatial)
+        run: ruff check packages/geospatial
+
       - name: Test solver
         run: pytest packages/solver -q
+
+      - name: Test geospatial
+        run: pytest packages/geospatial -q
 
       - name: Test API
         run: pytest apps/api -q

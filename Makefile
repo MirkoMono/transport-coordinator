@@ -10,11 +10,11 @@ web:
 	cd apps/web && npm run dev
 
 test:
-	pip install -e "packages/solver[dev]" -e "apps/api[dev]"
-	pytest packages/solver apps/api -q
+	pip install -e "packages/solver[dev]" -e "packages/geospatial[dev]" -e "apps/api[dev]"
+	pytest packages/solver packages/geospatial apps/api -q
 
 lint:
-	ruff check packages/solver apps/api
+	ruff check packages/solver packages/geospatial apps/api
 	cd apps/web && npm run typecheck
 
 dev: infra

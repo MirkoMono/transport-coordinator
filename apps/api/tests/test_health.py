@@ -31,3 +31,19 @@ def test_optimize_stub():
     data = response.json()
     assert len(data["routes"]) == 1
     assert len(data["routes"][0]["stops"]) == 2
+    assert data["solver_status"] != "PHASE0_PLACEHOLDER"
+    assert data["total_distance"] > 0
+
+
+def test_csv_import():
+    response = client.post(
+        "/api/v1/addresses/bulk-import",
+        json={
+            "csv": "name,latitude,longitude\nAlice,59.33,18.06\nBob,59.34,18.07\n",
+            "has_header": True,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["parsed_count"] == 2
+    assert data["rows"][0]["name"] == "Alice"
