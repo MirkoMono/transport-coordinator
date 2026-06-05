@@ -1,0 +1,7 @@
+# Dev overrides — infra only; run API and web locally for hot reload.
+# Usage: docker compose -f docker/compose.yml -f docker/compose.dev.yml up -d postgres redis
+
+services:
+  api:
+    profiles:
+      - full

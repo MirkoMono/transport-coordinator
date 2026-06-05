@@ -1,0 +1,52 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+.npm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+docker/volumes/
+
+# Logs & temp
+*.log
+tmp/
+temp/
+
+# Secrets & local data
+*.pem
+*.key
+secrets/
+
+# Generated
+*.pdf
+!docs/examples/*.pdf
