@@ -1,79 +1,87 @@
-.driver {
+.driver-app {
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 16px 16px calc(40px + env(safe-area-inset-bottom, 0px));
   min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-.driver-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+.driver-header-block {
+  margin: 12px 0 16px;
 }
 
-.driver-greeting {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 600;
+.driver-screen-title {
+  margin: 4px 0 0;
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
 }
 
 .driver-meta {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-}
-
-.driver-link {
-  color: var(--color-accent);
-  font-size: 0.875rem;
-  text-decoration: none;
+  font-size: 0.75rem;
 }
 
 .driver-card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
 }
 
 .driver-card.focus {
-  border-color: var(--color-accent-dim);
+  border-color: var(--color-text);
 }
 
 .focus-name {
   margin: 8px 0 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
 }
 
 .focus-eta {
   margin: 4px 0;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
 }
 
 .focus-address {
   margin: 0 0 12px;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  line-height: var(--leading-body);
 }
 
 .driver-select,
 .delay-input {
   width: 100%;
   margin-top: 6px;
-  padding: 10px 12px;
+  padding: 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-muted);
   color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  min-height: 48px;
 }
 
 .delay-label {
   display: block;
   margin-top: 12px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-muted);
 }
 
 .driver-stops {
@@ -87,43 +95,96 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 12px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-muted);
 }
 
 .driver-stops li.done {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .stop-name {
   display: block;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
 .stop-eta {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .stop-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.btn.small {
-  padding: 6px 10px;
-  font-size: 0.75rem;
+.driver-app .btn.primary {
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  min-height: 48px;
+}
+
+.driver-app .btn.secondary {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-subtle);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  min-height: 44px;
+}
+
+.driver-app .btn.small {
+  padding: 8px 10px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  min-height: 36px;
 }
 
 .badge {
   color: var(--color-accent);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .driver-message {
   text-align: center;
   color: var(--color-accent);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  padding: 8px;
+}
+
+.driver-app .accent {
+  color: var(--color-accent);
+}
+
+.driver-app .label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--color-text-muted);
+}
+
+.driver-app .btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }

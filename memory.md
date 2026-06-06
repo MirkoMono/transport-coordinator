@@ -4,7 +4,7 @@
 >
 > **Repository:** `transport-coordinator` (dedicated GitHub repo — not part of a monorepo)
 >
-> **Last updated:** 2026-06-05 (Phase 2 complete, Phase 3 in progress — address geocoding + AI call-sheet)
+> **Last updated:** 2026-06-06 (UI polish — dark monochrome, FLX brand, production + set/destination)
 
 ---
 
@@ -248,21 +248,21 @@ GET  /health                                  # includes ai_status
 
 ---
 
-## 7. UI Design Reference (from sketches)
+## 7. UI Design Reference
 
-Design direction for coordinator + driver interfaces. References only — not pixel-perfect copies.
+**Full spec:** [docs/design.md](docs/design.md)
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Dark-first** | Pure black (`#000`) background, `#1a1a1a` cards |
-| **Accent** | Mint green (`#3dff9a`) for active state, ETAs, highlights |
-| **Typography** | Clean sans-serif (Inter/system); text-first lists for driver PWA option |
-| **Layout** | Card-based dashboard, 2-column stat grid, large map area |
-| **Navigation** | Bottom tab bar: Map · Routes · Fleet · Account |
-| **Density** | Minimal chrome — coordinators need fast scanning of pickups/ETAs |
-| **Driver PWA** | Distraction-free: large timer/ETA ring, simple stop list, one-tap nav deep-link |
+Target direction: dark **monochrome**, **Inter** type, Swiss strict grid, step-by-step wizard flows, pill/radio selection patterns.
 
-CSS tokens live in `apps/web/src/index.css`. Coordinator and driver can share tokens; driver view gets larger touch targets in Phase 2.
+| Principle | Target |
+|-----------|--------|
+| **Clarity** | One primary action per screen; progress on import/geocode/optimize |
+| **Accent** | White inverted CTA on dark; gray-scale route lines on map |
+| **Layout** | 480px mobile shell, bottom tabs (Map · Routes · Fleet · History) |
+| **Driver PWA** | Radio-list manifest, 48px touch targets, optional dark for 4 AM |
+| **Scope** | Import → route → reason → export only (no live GPS UI) |
+
+**UI** per [docs/design.md](docs/design.md) — dark monochrome, Inter, strict Swiss grid.
 
 ---
 
@@ -336,6 +336,9 @@ Before public release, ensure:
 | 2026-06-05 | FastAPI + React | Best OR-Tools ergonomics + modern frontend |
 | 2026-06-05 | Dedicated GitHub repo | Clean OSS history, independent release cycle |
 | 2026-06-05 | Dark-mode UI tokens | Matches reference sketches: black + mint green accent |
+| 2026-06-06 | Dark monochrome + Inter | Mint accent retired; white CTAs, gray map routes, Swiss strict grid per `docs/design.md` |
+| 2026-06-06 | **FLX** as permanent app brand | Bold header mark (`font-weight: 900`); production title stays in form field + PDF |
+| 2026-06-06 | Set / destination drives depot | Geocode on blur + before optimize; persisted in `tc:production`; VRP depot + map center |
 | 2026-06-05 | Geocode via Nominatim, not LLM | Production assistants provide addresses only; LLM hallucinated coords would break map + VRP |
 | 2026-06-05 | Address-only CSV workflow | `name,address` columns → batch geocode → optimize; no manual lat/lng |
 | 2026-06-05 | `make setup-local` for no-Docker dev | User Mac without Docker Desktop; API + web via `scripts/start-api.sh` / `start-web.sh` |
@@ -368,10 +371,12 @@ Before public release, ensure:
 | **Tests** | `packages/ai/tests/`, `test_geocode_batch.py`, `test_ai_parse.py`, CSV comma test |
 
 ### Coordinator workflow (current)
-1. **Routes tab** → Load demo (12) → **Import & geocode** (~12 sec, Nominatim)
-2. Set call time (default 08:00, applies to all crew)
-3. **Optimize routes** → Map / Results / PDF
-4. **AI call sheet** (optional): paste text → Parse & geocode → same pipeline
+1. **Routes tab** → Set **Production** title + **Set / destination** (geocodes on blur → VRP depot)
+2. Load demo (12) → **Import & geocode** (~12 sec, Nominatim)
+3. Set call time (default 08:00, applies to all crew)
+4. **Optimize routes** → Map / Results / PDF (production name on manifest)
+5. **AI call sheet** (optional): paste text → Parse & geocode → same pipeline
+6. **Coordinator | Driver** role switch in header; driver view reads `tc:lastRun` + production settings
 
 ### Known limitations
 - Single global call time in UI; per-person `must_arrive_by_minutes` exists in API but not AI/CSV/UI
@@ -388,7 +393,51 @@ When resuming development:
 2. Check `git log --oneline -10` for recent work
 3. **With Docker:** `make setup` → `./scripts/start-api.sh` + `./scripts/start-web.sh` (two terminals)
 4. **Without Docker:** `make setup-local` → same two scripts; open http://localhost:5173
-5. Priority: **on-prem install** → enable AI for call-sheet testing → UI polish → Phase 4 OSS release
+5. Priority: **on-prem install** → per-person call times → AI reasoning panel → Phase 4 OSS release
+
+### Next application steps (2026-06-06)
+
+| Priority | Work | Why |
+|----------|------|-----|
+| 1 | **On-prem package** for production tester | `scripts/install.sh`, Docker compose, `.env` docs |
+| 2 | **Set marker on map** + set address on PDF manifest | Visual confirmation of shoot location |
+| 3 | **Per-person call times** | AI + CSV extract `must_arrive_by_minutes`; wire UI → solver |
+| 4 | **Failed geocode list** | Show which crew failed and why before optimize |
+| 5 | **AI reasoning** | `explain-route`, infeasibility diagnosis (LAN Ollama) |
+| 6 | **NL route edits** | "Move Anna to Van 2" → locked assignment → re-optimize |
+| 7 | **Driver offline** | Cache manifest in PWA service worker |
+| 8 | **Phase 4 OSS** | GHCR images, demo GIF, issue templates |
+
+---
+
+## 16. Session Log — 2026-06-06
+
+### Shipped today (UI / coordinator experience)
+
+| Area | Changes |
+|------|---------|
+| **Design system** | `docs/design.md` — dark monochrome, Inter, Swiss strict grid; mint accent retired |
+| **Theme tokens** | `index.css` — `#0a0a0a` surfaces, white inverted CTAs, gray route polylines, dark map tiles |
+| **Typography** | Inter loaded at 400–900; app icon + PWA manifest updated to monochrome |
+| **FLX brand** | Permanent bold **FLX** header (`screen-title-brand`, `font-weight: 900`); production title no longer in header |
+| **Production section** | Two-column card: **Production** title input + **Set / destination** address (side-by-side on Routes tab) |
+| **Set geocoding** | `geocodeSet()` on blur + before optimize via `POST /api/v1/addresses/geocode`; failed set blocks optimize |
+| **Depot / VRP** | Geocoded set coordinates = `depot_latitude/longitude` for solver + map; default Stockholm if empty |
+| **Persistence** | `apps/web/src/utils/production.ts` — `tc:production` (title, setAddress, depot); `tc:lastRun` for driver |
+| **Role switch** | `RoleSwitch.tsx` — Coordinator \| Driver segmented control in header |
+| **Icons** | `Icons.tsx` — white SVG icons (nav, stats, clock); native time picker hidden, white clock overlay |
+| **Driver PWA** | Dark theme aligned; shows production title from last run |
+| **Map** | Route line colors adjusted for monochrome palette |
+
+### User-validated flow (local Mac)
+- `./scripts/start-api.sh` + `./scripts/start-web.sh` → http://localhost:5173
+- FLX header, production + set fields, demo import/geocode/optimize working
+- Set address geocodes (e.g. Valhallavägen) and drives route depot
+
+### Deferred / follow-ups from today
+- Distinct map marker label for set vs crew pickups
+- Set address printed on PDF driver manifest
+- Geocode status styling (success vs error) for set field
 
 ---
 

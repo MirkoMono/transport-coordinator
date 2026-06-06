@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import type { OptimizeResult, Pickup, Vehicle } from "./types";
+import RoleSwitch from "./components/RoleSwitch";
+import { loadProductionSettings } from "./utils/production";
+import "./App.css";
 import "./DriverView.css";
 
 type StoredRun = {
   result: OptimizeResult;
   pickups: Pickup[];
   depot: { latitude: number; longitude: number };
+  productionTitle?: string;
+  setAddress?: string;
 };
 
 type DriverStop = {
@@ -27,6 +31,12 @@ export default function DriverView() {
   const [vehicleName, setVehicleName] = useState("");
   const [delayMinutes, setDelayMinutes] = useState(10);
   const [message, setMessage] = useState<string | null>(null);
+  const [productionTitle, setProductionTitle] = useState(
+    () => loadProductionSettings().title,
+  );
+  const [setAddress, setSetAddress] = useState(
+    () => loadProductionSettings().setAddress,
+  );
 
   useEffect(() => {
     const raw = localStorage.getItem("tc:lastRun");
@@ -36,6 +46,12 @@ export default function DriverView() {
       setStored(parsed);
       if (parsed.result.routes[0]) {
         setVehicleId(parsed.result.routes[0].vehicle_id);
+      }
+      if (parsed.productionTitle) {
+        setProductionTitle(parsed.productionTitle);
+      }
+      if (parsed.setAddress) {
+        setSetAddress(parsed.setAddress);
       }
     } catch {
       setStored(null);
@@ -142,12 +158,15 @@ export default function DriverView() {
 
   if (!stored) {
     return (
-      <div className="driver">
-        <p className="driver-greeting">Driver</p>
-        <p className="driver-meta">No route loaded. Coordinator must optimize first.</p>
-        <Link to="/" className="driver-link">
-          Back to coordinator
-        </Link>
+      <div className="driver-app">
+        <RoleSwitch />
+        <header className="driver-header-block">
+          <h1 className="driver-screen-title">
+            {productionTitle.trim() || "Manifest"}
+          </h1>
+          <p className="driver-meta">No route loaded. Optimize in Coordinator first.</p>
+          {setAddress && <p className="driver-meta">Set: {setAddress}</p>}
+        </header>
       </div>
     );
   }
@@ -162,17 +181,17 @@ export default function DriverView() {
   const nextStop = stops.find((s) => !s.checked_in_at);
 
   return (
-    <div className="driver">
-      <header className="driver-header">
-        <div>
-          <p className="driver-greeting">
-            Hi <span className="accent">{driverName || "Driver"}</span>
-          </p>
-          <p className="driver-meta">{vehicleName}</p>
-        </div>
-        <Link to="/" className="driver-link">
-          Coordinator
-        </Link>
+    <div className="driver-app">
+      <RoleSwitch />
+      <header className="driver-header-block">
+        <h1 className="driver-screen-title">
+          {productionTitle.trim() || "Manifest"}
+        </h1>
+        <p className="driver-meta">
+          {driverName || "Driver"}
+          {vehicleName ? ` · ${vehicleName}` : ""}
+        </p>
+        {setAddress && <p className="driver-meta">Set: {setAddress}</p>}
       </header>
 
       {nextStop && (

@@ -51,7 +51,7 @@ export default function RouteMap({ pickups, result, depot }: Props) {
         />
         <MapFitBounds points={allPoints} />
         <Marker position={center} icon={DepotIcon}>
-          <Popup>Depot / Set</Popup>
+          <Popup>Set / destination</Popup>
         </Marker>
         {geocoded.map((p) => (
           <Marker key={p.id} position={[p.latitude!, p.longitude!]}>

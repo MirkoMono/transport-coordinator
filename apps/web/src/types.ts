@@ -36,12 +36,11 @@ export type OptimizeResult = {
 };
 
 export const ROUTE_COLORS = [
-  "#3dff9a",
-  "#3db8ff",
-  "#ff9f3d",
-  "#ff6b9d",
-  "#b87dff",
-  "#ffd93d",
+  "#f2f2f2",
+  "#bfbfbf",
+  "#808080",
+  "#e0e0e0",
+  "#5a5a5a",
 ];
 
 export const DEMO_CSV = `name,address

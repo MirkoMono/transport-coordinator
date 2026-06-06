@@ -4,8 +4,8 @@
   "description": "Film production transport coordination",
   "start_url": "/driver",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "orientation": "portrait",
   "icons": [
     {

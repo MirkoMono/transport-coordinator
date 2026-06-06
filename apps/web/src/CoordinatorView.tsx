@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { IconClock, IconUsers, TAB_ICONS } from "./components/Icons";
+import RoleSwitch from "./components/RoleSwitch";
 import RouteMap from "./components/RouteMap";
 import {
   DEMO_CALL_SHEET,
   DEMO_CSV,
+  ROUTE_COLORS,
   type OptimizeResult,
   type Pickup,
   type Vehicle,
 } from "./types";
+import {
+  DEFAULT_DEPOT,
+  DEFAULT_SET_ADDRESS,
+  loadProductionSettings,
+  saveProductionSettings,
+  type DepotLocation,
+} from "./utils/production";
 import { timeStringToMinutes } from "./utils/time";
 import "./App.css";
 
@@ -51,7 +60,6 @@ const NAV: { id: Tab; label: string }[] = [
   { id: "history", label: "History" },
 ];
 
-const DEFAULT_DEPOT = { latitude: 59.3293, longitude: 18.0686 };
 const EMPTY_CSV = "name,address\n";
 
 function makeVehicles(count: number, capacity: number): Vehicle[] {
@@ -74,7 +82,13 @@ export default function CoordinatorView() {
   const [vehicles, setVehicles] = useState<Vehicle[]>(makeVehicles(3, 4));
   const [vehicleCount, setVehicleCount] = useState(3);
   const [vehicleCapacity, setVehicleCapacity] = useState(4);
-  const [depot] = useState(DEFAULT_DEPOT);
+  const [setAddress, setSetAddress] = useState(
+    () => loadProductionSettings().setAddress || DEFAULT_SET_ADDRESS,
+  );
+  const [depot, setDepot] = useState<DepotLocation>(
+    () => loadProductionSettings().depot ?? DEFAULT_DEPOT,
+  );
+  const [setStatus, setSetStatus] = useState<string | null>(null);
   const [callTime, setCallTime] = useState("08:00");
   const [lockedAssignments, setLockedAssignments] = useState<Record<string, string>>({});
   const [result, setResult] = useState<OptimizeResult | null>(null);
@@ -84,6 +98,13 @@ export default function CoordinatorView() {
   const [diffResult, setDiffResult] = useState<DiffResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [productionTitle, setProductionTitle] = useState(
+    () => loadProductionSettings().title,
+  );
+
+  useEffect(() => {
+    saveProductionSettings({ title: productionTitle, setAddress, depot });
+  }, [productionTitle, setAddress, depot]);
 
   useEffect(() => {
     fetch("/health")
@@ -217,10 +238,51 @@ export default function CoordinatorView() {
     }
   }
 
+  async function geocodeSet(): Promise<DepotLocation | null> {
+    const address = setAddress.trim();
+    if (!address) {
+      setDepot(DEFAULT_DEPOT);
+      setSetStatus(null);
+      return DEFAULT_DEPOT;
+    }
+
+    setSetStatus("Geocoding set…");
+    try {
+      const res = await fetch("/api/v1/addresses/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, country_bias: "se" }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail ?? "Set address not found");
+      }
+      const data = (await res.json()) as {
+        latitude: number;
+        longitude: number;
+        display_name: string;
+      };
+      const location = { latitude: data.latitude, longitude: data.longitude };
+      setDepot(location);
+      setSetAddress(data.display_name || address);
+      setSetStatus("Set geocoded.");
+      return location;
+    } catch (e) {
+      setSetStatus(e instanceof Error ? e.message : "Set geocoding failed");
+      return null;
+    }
+  }
+
   function persistForDriver(data: OptimizeResult) {
     localStorage.setItem(
       "tc:lastRun",
-      JSON.stringify({ result: data, pickups, depot }),
+      JSON.stringify({
+        result: data,
+        pickups,
+        depot,
+        productionTitle,
+        setAddress,
+      }),
     );
   }
 
@@ -234,6 +296,16 @@ export default function CoordinatorView() {
 
     setLoading(true);
     try {
+      let activeDepot = depot;
+      if (setAddress.trim()) {
+        const geocoded = await geocodeSet();
+        if (!geocoded) {
+          setError("Could not geocode set / destination. Check the address.");
+          return;
+        }
+        activeDepot = geocoded;
+      }
+
       const res = await fetch("/api/v1/routes/optimize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,8 +318,8 @@ export default function CoordinatorView() {
             address: p.address,
           })),
           vehicles,
-          depot_latitude: depot.latitude,
-          depot_longitude: depot.longitude,
+          depot_latitude: activeDepot.latitude,
+          depot_longitude: activeDepot.longitude,
           call_time_minutes: timeStringToMinutes(callTime),
           locked_assignments: lockedAssignments,
         }),
@@ -295,7 +367,7 @@ export default function CoordinatorView() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        production_name: "Transport Coordinator",
+        production_name: productionTitle.trim() || "Transport Coordinator",
         routes: result.routes.map((route) => ({
           vehicle_name: route.vehicle_name,
           driver_name: route.driver_name,
@@ -371,34 +443,68 @@ export default function CoordinatorView() {
   return (
     <div className="app">
       <header className="header">
-        <div>
-          <p className="greeting">
-            Good morning <span className="accent">Coordinator</span>
-          </p>
+        <RoleSwitch />
+        <div className="header-main">
+          <h1 className="screen-title screen-title-brand">FLX</h1>
+          {productionTitle.trim() && tab !== "routes" && (
+            <p className="subtitle">{productionTitle.trim()}</p>
+          )}
           <p className="subtitle">
             API {health?.status ?? "offline"}
             {health?.database === "ok" ? " · DB ok" : ""}
             {health?.ai_enabled ? ` · AI ${health.ai_status ?? "on"}` : " · AI off"}
           </p>
         </div>
-        <Link to="/driver" className="driver-link-header">
-          Driver
-        </Link>
       </header>
 
       <main className="main">
         {tab === "routes" && (
           <>
             <section className="card">
-              <div className="btn-row" style={{ marginBottom: "0.75rem" }}>
+              <div className="grid-2 production-grid">
+                <div>
+                  <p className="label">Production</p>
+                  <input
+                    type="text"
+                    className="production-input"
+                    placeholder="Title, e.g. Day 14"
+                    value={productionTitle}
+                    onChange={(e) => setProductionTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <p className="label">Set / destination</p>
+                  <input
+                    type="text"
+                    className="production-input"
+                    placeholder="Address, e.g. Filmstaden"
+                    value={setAddress}
+                    onChange={(e) => {
+                      setSetAddress(e.target.value);
+                      setSetStatus(null);
+                    }}
+                    onBlur={() => {
+                      void geocodeSet();
+                    }}
+                  />
+                </div>
+              </div>
+              {setStatus && <p className="hint">{setStatus}</p>}
+            </section>
+
+            <section className="card">
+              <p className="label">Import method</p>
+              <div className="pill-group" role="group" aria-label="Import method">
                 <button
-                  className={`btn ${importMode === "csv" ? "primary" : "secondary"}`}
+                  type="button"
+                  className={`pill ${importMode === "csv" ? "selected" : ""}`}
                   onClick={() => setImportMode("csv")}
                 >
                   CSV (addresses)
                 </button>
                 <button
-                  className={`btn ${importMode === "ai" ? "primary" : "secondary"}`}
+                  type="button"
+                  className={`pill ${importMode === "ai" ? "selected" : ""}`}
                   onClick={() => setImportMode("ai")}
                   disabled={!health?.ai_enabled}
                   title={health?.ai_enabled ? "Parse call sheet with Gemma" : "Enable AI_ENABLED in API"}
@@ -406,9 +512,18 @@ export default function CoordinatorView() {
                   AI call sheet
                 </button>
               </div>
+              {loading && statusMsg?.includes("Geocoding") && (
+                <div className="progress-wrap" aria-live="polite">
+                  <div className="progress-label">
+                    <span>{statusMsg}</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill indeterminate" />
+                  </div>
+                </div>
+              )}
               {importMode === "csv" ? (
                 <>
-                  <p className="label">Crew CSV — name and address only (no lat/lng needed)</p>
                   <textarea className="csv-input" value={csv} onChange={(e) => setCsv(e.target.value)} rows={5} />
                   <div className="btn-row">
                     <button type="button" className="btn secondary" onClick={loadDemoCsv}>
@@ -439,12 +554,15 @@ export default function CoordinatorView() {
                   </div>
                 </>
               )}
-              {statusMsg && <p className="hint">{statusMsg}</p>}
+              {statusMsg && !loading && <p className="status-msg">{statusMsg}</p>}
             </section>
 
             <div className="grid-2">
               <section className="card stat">
-                <p className="label">Pickups</p>
+                <p className="label label-with-icon">
+                  <IconUsers size={14} />
+                  Pickups
+                </p>
                 <p className="stat-value accent">{pickups.length || "—"}</p>
                 {pickups.length > 0 && (
                   <p className="hint">
@@ -453,13 +571,20 @@ export default function CoordinatorView() {
                 )}
               </section>
               <section className="card stat">
-                <p className="label">Call time</p>
-                <input
-                  type="time"
-                  className="call-time-input"
-                  value={callTime}
-                  onChange={(e) => setCallTime(e.target.value)}
-                />
+                <p className="label label-with-icon">
+                  <IconClock size={14} />
+                  Call time
+                </p>
+                <div className="time-input-wrap">
+                  <input
+                    type="time"
+                    className="call-time-input"
+                    value={callTime}
+                    onChange={(e) => setCallTime(e.target.value)}
+                    aria-label="Call time"
+                  />
+                  <IconClock size={18} className="time-input-icon" />
+                </div>
               </section>
             </div>
 
@@ -486,10 +611,13 @@ export default function CoordinatorView() {
                   {(result.total_distance / 1000).toFixed(1)} km
                   {result.run_id ? ` · run ${result.run_id.slice(0, 8)}` : ""}
                 </p>
-                {result.routes.map((route) => (
+                {result.routes.map((route, idx) => (
                   <div key={route.vehicle_id} className="route-card">
                     <div className="route-title-row">
-                      <p className="route-title">
+                      <p
+                        className="route-title"
+                        style={{ color: ROUTE_COLORS[idx % ROUTE_COLORS.length] }}
+                      >
                         {route.vehicle_name}
                         {route.driver_name ? ` · ${route.driver_name}` : ""}
                       </p>
@@ -612,11 +740,20 @@ export default function CoordinatorView() {
       </main>
 
       <nav className="bottom-nav">
-        {NAV.map((item) => (
-          <button key={item.id} className={`nav-item ${tab === item.id ? "active" : ""}`} onClick={() => setTab(item.id)}>
-            {item.label}
-          </button>
-        ))}
+        {NAV.map((item) => {
+          const Icon = TAB_ICONS[item.id];
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`nav-item ${tab === item.id ? "active" : ""}`}
+              onClick={() => setTab(item.id)}
+            >
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
