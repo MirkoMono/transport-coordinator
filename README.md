@@ -4,12 +4,32 @@ Film production transport coordinator with VRP optimization. Assign crew pickups
 
 **License:** Apache 2.0 (open-core community edition)
 
-## Quick Start
+## Quick Start (demo on your Mac — no Docker)
 
 ### Prerequisites
 
 - Python 3.12+
 - Node.js 22+
+
+```bash
+git clone https://github.com/MirkoMono/transport-coordinator.git
+cd transport-coordinator
+make setup-local    # once
+./scripts/start.sh  # opens http://localhost:5173
+```
+
+**Desktop shortcut (macOS):** `make desktop` — adds Start/Stop icons to your Desktop.
+
+**Swedish demo manual:** [docs/demo-manual-sv.md](docs/demo-manual-sv.md) · **Share with others:** [docs/dela-appen.md](docs/dela-appen.md)
+
+**Mobile test (same Wi‑Fi):** `./scripts/start.sh --mobile` — open the printed URL on your phone.
+
+Stop: `./scripts/stop.sh` or `make stop`
+
+---
+
+### Full stack (Docker)
+
 - Docker & Docker Compose
 
 ### 1. Start infrastructure

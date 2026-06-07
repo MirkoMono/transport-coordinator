@@ -1,4 +1,16 @@
-.PHONY: dev setup infra api web test lint migrate ai
+.PHONY: dev setup infra api web test lint migrate ai start stop desktop
+
+start:
+	@chmod +x scripts/*.sh scripts/*.command 2>/dev/null || chmod +x scripts/*.sh
+	@./scripts/start.sh
+
+stop:
+	@chmod +x scripts/stop.sh
+	@./scripts/stop.sh
+
+desktop:
+	@chmod +x scripts/install-desktop-shortcut.sh scripts/*.command scripts/*.sh
+	@./scripts/install-desktop-shortcut.sh
 
 infra:
 	@command -v docker >/dev/null 2>&1 || (echo "Docker not found. Install Docker Desktop: https://www.docker.com/products/docker-desktop/" && echo "Or run without Docker: make setup-local" && exit 1)

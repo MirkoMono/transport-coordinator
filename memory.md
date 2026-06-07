@@ -4,7 +4,7 @@
 >
 > **Repository:** `transport-coordinator` (dedicated GitHub repo — not part of a monorepo)
 >
-> **Last updated:** 2026-06-06 (UI polish — dark monochrome, FLX brand, production + set/destination)
+> **Last updated:** 2026-06-06 (one-click local start, Swedish demo manual, mobile LAN test)
 
 ---
 
@@ -339,6 +339,10 @@ Before public release, ensure:
 | 2026-06-06 | Dark monochrome + Inter | Mint accent retired; white CTAs, gray map routes, Swiss strict grid per `docs/design.md` |
 | 2026-06-06 | **FLX** as permanent app brand | Bold header mark (`font-weight: 900`); production title stays in form field + PDF |
 | 2026-06-06 | Set / destination drives depot | Geocode on blur + before optimize; persisted in `tc:production`; VRP depot + map center |
+| 2026-06-06 | `./scripts/start.sh` as default dev entry | Single command starts API + web, opens browser; `.run/` pid logs; `make start` / `make stop` |
+| 2026-06-06 | macOS Desktop `.command` shortcuts | `make desktop` → Start/Stop on Desktop for non-terminal users |
+| 2026-06-06 | Swedish demo manual | `docs/demo-manual-sv.md` + `docs/dela-appen.md` for sharing with production testers |
+| 2026-06-06 | Mobile LAN test via `--mobile` | `TRANSPORT_MOBILE=1` binds Vite to LAN; phone opens `http://<mac-ip>:5173/driver` on same Wi‑Fi |
 | 2026-06-05 | Geocode via Nominatim, not LLM | Production assistants provide addresses only; LLM hallucinated coords would break map + VRP |
 | 2026-06-05 | Address-only CSV workflow | `name,address` columns → batch geocode → optimize; no manual lat/lng |
 | 2026-06-05 | `make setup-local` for no-Docker dev | User Mac without Docker Desktop; API + web via `scripts/start-api.sh` / `start-web.sh` |
@@ -391,9 +395,11 @@ Before public release, ensure:
 When resuming development:
 1. Read this `memory.md`
 2. Check `git log --oneline -10` for recent work
-3. **With Docker:** `make setup` → `./scripts/start-api.sh` + `./scripts/start-web.sh` (two terminals)
-4. **Without Docker:** `make setup-local` → same two scripts; open http://localhost:5173
-5. Priority: **on-prem install** → per-person call times → AI reasoning panel → Phase 4 OSS release
+3. **Without Docker (default):** `make setup-local` (once) → `./scripts/start.sh` or `make desktop` + double-click Start
+4. **Mobile test:** `./scripts/start.sh --mobile` → open printed URL on phone (same Wi‑Fi)
+5. **With Docker:** `make setup` → `./scripts/start-api.sh` + `./scripts/start-web.sh` (two terminals)
+6. **Share demo:** send repo link + `docs/demo-manual-sv.md`
+7. Priority: **on-prem install** → per-person call times → AI reasoning panel → Phase 4 OSS release
 
 ### Next application steps (2026-06-06)
 
@@ -438,6 +444,34 @@ When resuming development:
 - Distinct map marker label for set vs crew pickups
 - Set address printed on PDF driver manifest
 - Geocode status styling (success vs error) for set field
+
+---
+
+## 17. Session Log — 2026-06-06 (local start & sharing)
+
+### Shipped today (developer / distribution experience)
+
+| Area | Changes |
+|------|---------|
+| **One-command start** | `scripts/start.sh` — background API + web, health wait, opens browser; PIDs/logs in `.run/` |
+| **Stop** | `scripts/stop.sh` — graceful shutdown + port fallback |
+| **Makefile** | `make start`, `make stop`, `make desktop` |
+| **macOS shortcuts** | `Start Transport Coordinator.command` + `Stop…` on Desktop via `install-desktop-shortcut.sh` |
+| **Mobile LAN** | `./scripts/start.sh --mobile` — Vite `host` when `TRANSPORT_MOBILE=1`; prints `http://<lan-ip>:5173` |
+| **Docs (SV)** | `docs/demo-manual-sv.md` — full demo walkthrough in Swedish |
+| **Docs (SV)** | `docs/dela-appen.md` — how to share repo + shortcuts with colleagues |
+| **README** | Quick start rewritten around `make setup-local` + `./scripts/start.sh` |
+| **Setup hint** | `dev-no-docker.sh` now points to `start.sh` first, two-terminal flow as advanced |
+
+### Distribution workflow (current)
+1. Share https://github.com/MirkoMono/transport-coordinator + `docs/demo-manual-sv.md`
+2. Recipient: `make setup-local` → `./scripts/start.sh` (or `make desktop`)
+3. Demo: Production + Set → Load demo (12) → Import & geocode → Optimize → Map / Driver
+4. Team mobile preview: host runs `--mobile`, others open LAN URL on same Wi‑Fi
+
+### User-validated
+- Desktop shortcuts installed on dev Mac (`~/Desktop/Start Transport Coordinator.command`)
+- `start.sh` brings API + web up without two terminals
 
 ---
 

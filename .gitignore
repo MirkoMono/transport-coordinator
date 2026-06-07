@@ -42,6 +42,7 @@ docker/volumes/
 *.log
 tmp/
 temp/
+.run/
 
 # Secrets & local data
 *.pem

@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: process.env.TRANSPORT_MOBILE === "1",
     proxy: {
       "/api": "http://localhost:8000",
       "/health": "http://localhost:8000",
