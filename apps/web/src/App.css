@@ -15,18 +15,21 @@
   margin-top: 12px;
 }
 
+/* Linear-style segmented role switch */
 .role-switch {
   display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--color-surface-muted);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
+  border-radius: var(--radius-pill);
 }
 
 .role-switch-btn {
   flex: 1;
   display: block;
   text-align: center;
-  padding: 12px 10px;
+  padding: 10px 12px;
   font-size: 0.6875rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -34,17 +37,17 @@
   text-decoration: none;
   color: var(--color-text-muted);
   background: transparent;
-  border-right: 1px solid var(--color-border-subtle);
-  min-height: 44px;
-}
-
-.role-switch-btn:last-child {
-  border-right: none;
+  border-radius: calc(var(--radius-pill) - 2px);
+  min-height: 40px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .role-switch-btn.active {
   background: var(--color-accent);
   color: var(--color-accent-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .production-input {
@@ -84,8 +87,8 @@
 
 .screen-title-brand {
   font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
 }
 
 .greeting {
@@ -128,7 +131,7 @@
 .card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 16px 18px;
   border: 1px solid var(--color-border-subtle);
 }
 
@@ -154,7 +157,7 @@
 }
 
 .hint {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: 0.8125rem;
   color: var(--color-text-muted);
   line-height: 1.4;
@@ -235,30 +238,37 @@
   min-height: 48px;
 }
 
-/* Pills — import mode, filters */
+/* Segmented import mode — Linear pill track */
 .pill-group {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 14px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
 }
 
 .pill {
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: calc(var(--radius-pill) - 2px);
   font-weight: 500;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   letter-spacing: 0.02em;
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-surface);
-  color: var(--color-text);
-  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  min-height: 40px;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .pill.selected {
   background: var(--color-accent);
-  border-color: var(--color-accent);
   color: var(--color-accent-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .pill:disabled {
@@ -273,6 +283,13 @@
   flex-wrap: wrap;
 }
 
+.step-hint {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
 .btn {
   padding: 12px 16px;
   border-radius: var(--radius-sm);
@@ -280,7 +297,10 @@
   font-size: 0.8125rem;
   letter-spacing: 0.03em;
   min-height: 48px;
-  transition: background 0.12s ease;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .btn:active:not(:disabled) {
@@ -294,6 +314,11 @@
 
 .btn.primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
+}
+
+.btn.primary.loading {
+  opacity: 0.85;
+  cursor: wait;
 }
 
 .btn.secondary {
@@ -606,4 +631,16 @@
 .leaflet-bar {
   border: 1px solid var(--color-border-subtle) !important;
   box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .progress-fill,
+  .progress-fill.indeterminate {
+    transition: none;
+    animation: none;
+  }
 }

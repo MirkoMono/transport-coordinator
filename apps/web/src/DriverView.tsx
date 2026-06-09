@@ -179,10 +179,23 @@ export default function DriverView() {
   }));
 
   const nextStop = stops.find((s) => !s.checked_in_at);
+  const totalStops = stops.length;
+  const currentStopIndex = nextStop
+    ? stops.findIndex((s) => s.node_id === nextStop.node_id) + 1
+    : totalStops;
 
   return (
     <div className="driver-app">
       <RoleSwitch />
+      {totalStops > 0 && (
+        <div className="driver-status-bar" role="status">
+          <span className="driver-status-dot" aria-hidden />
+          {nextStop
+            ? `Stop ${currentStopIndex} of ${totalStops} · On route`
+            : `All ${totalStops} stops complete`}
+        </div>
+      )}
+
       <header className="driver-header-block">
         <h1 className="driver-screen-title">
           {productionTitle.trim() || "Manifest"}
@@ -191,78 +204,105 @@ export default function DriverView() {
           {driverName || "Driver"}
           {vehicleName ? ` · ${vehicleName}` : ""}
         </p>
-        {setAddress && <p className="driver-meta">Set: {setAddress}</p>}
+        {setAddress && <p className="driver-meta driver-meta-set">Set: {setAddress}</p>}
       </header>
 
       {nextStop && (
-        <section className="driver-card focus">
-          <p className="label">Next pickup</p>
+        <section className="driver-card focus" aria-label="Next pickup">
+          <span className="focus-badge">Next pickup</span>
           <p className="focus-name">{nextStop.person_name}</p>
-          <p className="focus-eta accent">ETA {nextStop.eta_minutes} min</p>
+          <div className="focus-eta-row">
+            <p className="focus-eta">{nextStop.eta_minutes}</p>
+            <span className="focus-eta-unit">min to pickup</span>
+          </div>
           <p className="focus-address">{nextStop.address}</p>
           <div className="btn-row">
-            <button className="btn primary" onClick={() => checkIn(nextStop.node_id)}>
+            <button
+              type="button"
+              className="btn btn-checkin"
+              onClick={() => checkIn(nextStop.node_id)}
+            >
               Check in
             </button>
-            <button className="btn secondary" onClick={() => openMaps(nextStop)}>
+            <button
+              type="button"
+              className="btn btn-navigate"
+              onClick={() => openMaps(nextStop)}
+            >
               Navigate
             </button>
           </div>
         </section>
       )}
 
-      <section className="driver-card">
-        <label className="label">
-          Vehicle
-          <select
-            value={vehicleId}
-            onChange={(e) => setVehicleId(e.target.value)}
-            className="driver-select"
-          >
-            {vehicles.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="label delay-label">
-          Delay (min)
-          <input
-            type="number"
-            min={0}
-            max={120}
-            value={delayMinutes}
-            onChange={(e) => setDelayMinutes(parseInt(e.target.value, 10))}
-            className="delay-input"
-          />
-        </label>
-      </section>
+      <details className="driver-settings">
+        <summary>Vehicle &amp; delay settings</summary>
+        <div className="driver-settings-body">
+          <label className="label">
+            Vehicle
+            <select
+              value={vehicleId}
+              onChange={(e) => setVehicleId(e.target.value)}
+              className="driver-select"
+            >
+              {vehicles.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="label delay-label">
+            Delay (min)
+            <input
+              type="number"
+              min={0}
+              max={120}
+              value={delayMinutes}
+              onChange={(e) => setDelayMinutes(parseInt(e.target.value, 10))}
+              className="delay-input"
+            />
+          </label>
+        </div>
+      </details>
 
       <section className="driver-card">
         <p className="label">Today's stops</p>
         <ol className="driver-stops">
           {stops.map((stop) => (
-            <li key={stop.node_id} className={stop.checked_in_at ? "done" : ""}>
+            <li
+              key={stop.node_id}
+              className={[
+                stop.checked_in_at ? "done" : "",
+                !stop.checked_in_at && stop.node_id === nextStop?.node_id ? "active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
               <div>
                 <span className="stop-name">{stop.person_name}</span>
                 <span className="stop-eta">ETA {stop.eta_minutes} min</span>
               </div>
               <div className="stop-actions">
+                <button
+                  type="button"
+                  className={`btn small${stop.checked_in_at ? " btn-in-checked" : ""}`}
+                  onClick={() => checkIn(stop.node_id)}
+                  disabled={Boolean(stop.checked_in_at)}
+                  aria-label={stop.checked_in_at ? `${stop.person_name} checked in` : `Check in ${stop.person_name}`}
+                >
+                  In
+                </button>
                 {!stop.checked_in_at && (
                   <>
-                    <button className="btn small" onClick={() => checkIn(stop.node_id)}>
-                      In
-                    </button>
-                    <button className="btn small secondary" onClick={() => reportDelay(stop.node_id)}>
+                    <button type="button" className="btn small secondary" onClick={() => reportDelay(stop.node_id)}>
                       Late
                     </button>
-                    <button className="btn small secondary" onClick={() => openMaps(stop)}>
+                    <button type="button" className="btn small secondary" onClick={() => openMaps(stop)}>
                       Nav
                     </button>
                   </>
                 )}
-                {stop.checked_in_at && <span className="badge">Done</span>}
               </div>
             </li>
           ))}

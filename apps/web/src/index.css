@@ -22,10 +22,19 @@
   --color-error: #f2f2f2;
   --color-error-bg: #1c1c1c;
 
+  /* Driver-only operational accent (Grab-inspired) */
+  --color-driver-active: #00b14f;
+  --color-driver-active-muted: rgba(0, 177, 79, 0.14);
+  --color-driver-active-text: #e8fff1;
+
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-pill: 8px;
   --shadow-card: none;
+
+  --transition-fast: 0.12s ease;
+  --transition-step: 0.2s ease;
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "SF Mono", "Menlo", "Consolas", monospace;

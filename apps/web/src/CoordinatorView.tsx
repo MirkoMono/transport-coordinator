@@ -529,11 +529,16 @@ export default function CoordinatorView() {
                     <button type="button" className="btn secondary" onClick={loadDemoCsv}>
                       Load demo (12)
                     </button>
-                    <button type="button" className="btn primary" onClick={importCsv} disabled={loading}>
-                      Import &amp; geocode
+                    <button
+                      type="button"
+                      className={`btn primary${loading ? " loading" : ""}`}
+                      onClick={importCsv}
+                      disabled={loading}
+                    >
+                      {loading ? "Importing…" : "Import & geocode"}
                     </button>
                   </div>
-                  <p className="hint">Step 1: Load demo · Step 2: Import &amp; geocode (~12 sec)</p>
+                  <p className="step-hint">Step 1: Load demo · Step 2: Import &amp; geocode (~12 sec)</p>
                 </>
               ) : (
                 <>
@@ -548,10 +553,16 @@ export default function CoordinatorView() {
                     <button type="button" className="btn secondary" onClick={loadDemoCallSheet}>
                       Load demo
                     </button>
-                    <button type="button" className="btn primary" onClick={parseCallSheet} disabled={loading}>
-                      Parse &amp; geocode
+                    <button
+                      type="button"
+                      className={`btn primary${loading ? " loading" : ""}`}
+                      onClick={parseCallSheet}
+                      disabled={loading}
+                    >
+                      {loading ? "Parsing…" : "Parse & geocode"}
                     </button>
                   </div>
+                  <p className="step-hint">Step 1: Load demo · Step 2: Parse &amp; geocode</p>
                 </>
               )}
               {statusMsg && !loading && <p className="status-msg">{statusMsg}</p>}
@@ -589,8 +600,16 @@ export default function CoordinatorView() {
             </div>
 
             <section className="card">
-              <button className="btn primary full" onClick={optimize} disabled={loading || !pickups.length}>
-                {loading ? "Optimizing…" : Object.keys(lockedAssignments).length ? "Re-optimize (locked)" : "Optimize routes"}
+              <button
+                className={`btn primary full${loading ? " loading" : ""}`}
+                onClick={optimize}
+                disabled={loading || !pickups.length}
+              >
+                {loading
+                  ? "Optimizing…"
+                  : Object.keys(lockedAssignments).length
+                    ? "Re-optimize (locked)"
+                    : "Optimize routes"}
               </button>
               {Object.keys(lockedAssignments).length > 0 && (
                 <p className="hint">{Object.keys(lockedAssignments).length} locked assignment(s)</p>
